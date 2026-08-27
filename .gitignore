@@ -1,0 +1,15 @@
+# state.json holds the bot token and all local progress - never commit it
+state.json
+state.json.tmp
+
+__pycache__/
+*.pyc
+
+# ffmpeg run logs
+*.log
+*.err
+
+# PyInstaller output
+build/
+dist/
+*.spec

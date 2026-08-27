@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>הספרייה — לוח העלאה</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --line:#262d38;
+    --tx:#e6edf5; --dim:#8b97a8; --accent:#5865F2; --ok:#3fb950;
+    --warn:#d29922; --bad:#f85149; --info:#58a6ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;font-size:14px}
+  a{color:var(--info)}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{color:var(--dim);font-size:12px}
+  .card{background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:16px;margin-bottom:16px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  label{display:block;font-size:11px;color:var(--dim);margin:0 0 4px}
+  input,select{background:var(--panel2);border:1px solid var(--line);
+    color:var(--tx);border-radius:8px;padding:8px 10px;font-size:13px;
+    font-family:inherit;width:100%}
+  input:focus,select:focus{outline:1px solid var(--accent)}
+  button{background:var(--accent);border:0;color:#fff;border-radius:8px;
+    padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;
+    font-family:inherit}
+  button:hover{filter:brightness(1.12)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.ghost{background:var(--panel2);border:1px solid var(--line)}
+  button.danger{background:var(--bad)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  .tile{background:var(--panel2);border:1px solid var(--line);
+    border-radius:10px;padding:12px}
+  .tile .n{font-size:22px;font-weight:700}
+  .tile .l{font-size:11px;color:var(--dim);margin-top:2px}
+  .chip{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;
+    border:1px solid var(--line);white-space:nowrap}
+  .c-done,.c-already{background:rgba(63,185,80,.14);color:var(--ok);border-color:transparent}
+  .c-bot_ready{background:rgba(88,166,255,.14);color:var(--info);border-color:transparent}
+  .c-needs_optimize{background:rgba(210,153,34,.15);color:var(--warn);border-color:transparent}
+  .c-manual{background:rgba(248,81,73,.14);color:var(--bad);border-color:transparent}
+  details{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;
+    background:var(--panel2);overflow:hidden}
+  summary{cursor:pointer;padding:11px 14px;font-weight:600;list-style:none;
+    display:flex;justify-content:space-between;gap:10px;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  table{width:100%;border-collapse:collapse}
+  td{padding:7px 14px;border-top:1px solid var(--line);font-size:12.5px;
+    vertical-align:middle}
+  td.sz{color:var(--dim);white-space:nowrap;text-align:left;
+    font-variant-numeric:tabular-nums}
+  .bar{height:7px;background:var(--panel2);border-radius:99px;overflow:hidden;
+    border:1px solid var(--line)}
+  .bar > i{display:block;height:100%;background:var(--accent);width:0;
+    transition:width .25s}
+  #log{background:#0a0d12;border:1px solid var(--line);border-radius:8px;
+    padding:10px;height:210px;overflow:auto;font-family:Consolas,monospace;
+    font-size:11.5px;direction:ltr;text-align:left;white-space:pre-wrap;
+    color:#b9c4d2}
+  .banner{border-radius:10px;padding:11px 14px;margin-bottom:12px;font-size:13px}
+  .b-warn{background:rgba(210,153,34,.12);border:1px solid rgba(210,153,34,.35)}
+  .b-bad{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.35)}
+  .b-ok{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.35)}
+  .muted{color:var(--dim)}
+  .grow{flex:1;min-width:190px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📚 הספרייה — לוח העלאה</h1>
+  <div class="sub">דוחס, מסדר ומעלה הרצאות לפורומים בדיסקורד. כל הפעולות דרך בוט רשמי.</div>
+
+  <div id="banners"></div>
+
+  <div class="card">
+    <div class="row">
+      <div class="grow">
+        <label>טוקן של הבוט (Bot Token)</label>
+        <input id="token" type="password" placeholder="מ־Developer Portal ← Bot ← Reset Token">
+      </div>
+      <div style="min-width:210px">
+        <label>שרת</label>
+        <select id="guild"><option value="">— התחבר קודם —</option></select>
+      </div>
+      <div style="align-self:flex-end"><button id="btnConnect">התחבר</button></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="grow">
+        <label>תיקיית הספרייה</label><input id="root">
+      </div>
+      <div class="grow">
+        <label>תיקיית קבצים דחוסים</label><input id="optdir">
+      </div>
+      <div style="align-self:flex-end"><button class="ghost" id="btnSave">שמור וסרוק</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tiles" id="tiles"></div>
+    <div class="row" style="margin-top:14px">
+      <button id="btnStructure">1 · בנה פורומים</button>
+      <button id="btnOptimize">2 · דחוס גדולים</button>
+      <button id="btnThreads">3 · צור דיונים</button>
+      <button class="ghost" id="btnAll">הרץ 1‑2‑3</button>
+      <button class="ghost" id="btnUpload" title="רק לקבצים מתחת למגבלת הבוט">העלה דרך הבוט</button>
+      <button class="danger" id="btnStop" disabled>עצור</button>
+      <button class="ghost" id="btnRefresh">רענן</button>
+      <label style="display:flex;align-items:center;gap:6px;margin:0;
+                    font-size:13px;color:var(--tx);cursor:pointer"
+             title="כשמכובה, שלב 1 לא רץ ושלב 3 מעלה רק לפורומים קיימים">
+        <input type="checkbox" id="mkForums" checked style="width:auto;margin:0">
+        צור פורומים אוטומטית
+      </label>
+      <button class="ghost" id="btnReset" title="שכח התקדמות מקומית וסרוק את השרת מחדש">אפס התקדמות</button>
+    </div>
+  </div>
+
+  <div class="card" id="mapCard" style="display:none">
+    <div class="row" style="justify-content:space-between;margin-bottom:4px">
+      <b>שיוך תיקייה ← פורום</b>
+      <span class="muted" id="mapWarn"></span>
+    </div>
+    <div class="sub" style="margin-bottom:10px">
+      זוהה אוטומטית. אם משהו שויך לפורום הלא נכון — בחר ידנית כאן.
+      הקטגוריה שבה נמצא הפורום לא משנה.
+    </div>
+    <table id="mapTable"></table>
+  </div>
+
+  <div class="card" id="manualCard" style="display:none">
+    <div class="row" style="justify-content:space-between;margin-bottom:4px">
+      <b>4 · העלאה ידנית (הניטרו שלך — 500MB)</b>
+      <span class="muted" id="qCount"></span>
+    </div>
+    <div class="sub" style="margin-bottom:12px">
+      לחץ <b>התחל</b> פעם אחת. אפליקציית דיסקורד נפתחת על הדיון הנכון והקובץ כבר בלוח ההעתקה.
+      עכשיו רק <b>Ctrl+V</b> ואז <b>Enter</b> — ובאותו רגע הלוח כבר קופץ לדיון הבא עם הקובץ הבא
+      בלוח, בלי לחכות שההעלאה תסתיים. ההעלאה הקודמת ממשיכה ברקע.
+      אין גרירה, אין הקלדת שמות, ואין דפדפן.
+    </div>
+    <div class="bar" style="margin-bottom:12px"><i id="qBar"></i></div>
+    <div id="qNow" style="background:var(--panel2);border:1px solid var(--line);
+         border-radius:10px;padding:14px;margin-bottom:10px"></div>
+    <div class="row">
+      <button id="btnClip">▶ התחל / הבא</button>
+      <button class="ghost" id="btnDone">✔ בוצע ידנית</button>
+      <button class="ghost" id="btnSkip">דלג</button>
+      <label style="display:flex;align-items:center;gap:6px;margin:0;
+                    font-size:13px;color:var(--tx);cursor:pointer">
+        <input type="checkbox" id="hands" checked style="width:auto;margin:0">
+        מצב רצוף — ממשיך לבא אוטומטית
+      </label>
+    </div>
+    <div id="qStatus" class="sub" style="margin-top:10px;min-height:18px"></div>
+    <div class="sub" style="margin-top:4px" id="qNext"></div>
+
+    <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+      <div class="row" style="justify-content:space-between;margin-bottom:4px">
+        <b>🤖 אוטומטי — בלי לגעת במקלדת</b>
+        <span class="muted" id="autoStat"></span>
+      </div>
+      <div class="sub" style="margin-bottom:12px">
+        הפאנל פותח את הדיון, מוודא לפי כותרת החלון שזה באמת הדיון הנכון,
+        ואז מקליד בעצמו <b>Ctrl+V</b> ו־<b>Enter</b>. הוא לא מחכה לסיום ההעלאה —
+        ממשיך מיד לבא, ושומר כמה העלאות פעילות במקביל.
+        <b style="color:var(--warn)">אל תיגע במקלדת בזמן ריצה. Esc עוצר מיד.</b>
+      </div>
+      <div class="row">
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px">
+          כמה קבצים
+          <input id="aCount" type="number" value="10" min="1" step="1"
+                 style="width:80px;margin:0">
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px">
+          במקביל
+          <input id="aWin" type="number" value="3" min="1" max="6" step="1"
+                 style="width:70px;margin:0">
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px">
+          השהיה אחרי הדבקה
+          <input id="aWait" type="number" value="2.5" min="0.8" step="0.5"
+                 style="width:80px;margin:0">
+        </label>
+        <button id="btnAuto">🤖 הפעל</button>
+        <button class="ghost" id="btnAutoStop">עצור (Esc)</button>
+      </div>
+      <div class="sub" id="autoLine" style="margin-top:10px;min-height:18px"></div>
+    </div>
+  </div>
+
+  <div class="card" id="progCard" style="display:none">
+    <div class="row" style="justify-content:space-between">
+      <b id="phase"></b><span class="muted" id="counter"></span>
+    </div>
+    <div class="muted" id="current" style="margin:6px 0 8px;font-size:12px"></div>
+    <div class="bar"><i id="barTotal"></i></div>
+    <div class="bar" style="margin-top:5px"><i id="barItem" style="background:var(--ok)"></i></div>
+  </div>
+
+  <div class="card">
+    <label>יומן</label>
+    <div id="log"></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <b>הקורסים</b>
+      <span class="muted" id="totals"></span>
+    </div>
+    <div class="row" style="margin-bottom:10px;gap:10px">
+      <button class="ghost" id="btnPickAll">בחר הכל</button>
+      <button class="ghost" id="btnPickNone">נקה בחירה</button>
+      <span class="sub" id="pickInfo"></span>
+    </div>
+    <div class="sub" style="margin-bottom:10px">
+      סמן קבצים כדי לעבוד רק עליהם — שלבים 1–4 יתייחסו רק לבחירה.
+      ללא בחירה — כל הספרייה.
+    </div>
+    <div id="courses"></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let S = null, polling = false;
+
+const fmt = b => b > 1073741824 ? (b/1073741824).toFixed(1)+' GB'
+                                : Math.round(b/1048576)+' MB';
+
+const LABEL = {
+  done:'הועלה', already:'קיים בשרת', bot_ready:'מוכן לבוט',
+  needs_optimize:'צריך דחיסה', manual:'ידני', unknown:'—'
+};
+
+async function api(path, body){
+  const o = body ? {method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify(body)} : {};
+  const r = await fetch(path, o);
+  return r.json();
+}
+
+function banner(cls, html){
+  return `<div class="banner ${cls}">${html}</div>`;
+}
+
+function render(s){
+  S = s;
+  if(document.activeElement !== $('#root'))   $('#root').value   = s.settings.root||'';
+  if(document.activeElement !== $('#optdir')) $('#optdir').value = s.settings.optimized_dir||'';
+
+  // banners
+  let b = '';
+  if(!s.ffmpeg) b += banner('b-bad',
+    '⚠ <b>ffmpeg לא נמצא</b> — התקן עם <code>winget install Gyan.FFmpeg</code> ואז הפעל מחדש. בלעדיו אי אפשר לדחוס.');
+  if(!s.server || !s.server.guild_id){
+    b += banner('b-warn','הכנס טוקן של בוט ולחץ "התחבר" כדי להתחיל.');
+  } else {
+    const sv = s.server, cap = sv.cap_mb, s_ceiling = s.ceiling||480;
+    const manual = (s.counts.needs_optimize||0);
+    b += banner(cap >= 100 ? 'b-ok' : 'b-warn',
+      `<b>${sv.guild_name}</b> · בוסט: ${sv.tier_name} (${sv.boosts}) · ` +
+      `<b>מגבלת בוט: ${cap} MB</b>` +
+      (cap < 100
+        ? ` — קטן מדי לוידאו, לכן הבוט בונה את המבנה ואתה מעלה את הקבצים עם הניטרו (500MB). יעד דחיסה: ${s_ceiling} MB.`
+        : ''));
+  }
+  $('#banners').innerHTML = b;
+
+  // tiles
+  const c = s.counts;
+  const tiles = [
+    ['סה״כ סרטונים', s.total_files],
+    ['נפח כולל', fmt(s.total_bytes)],
+    ['כבר בשרת', (c.already||0)+(c.done||0)],
+    ['מוכן לבוט', c.bot_ready||0],
+    ['צריך דחיסה', c.needs_optimize||0],
+  ];
+  $('#tiles').innerHTML = tiles.map(([l,n]) =>
+    `<div class="tile"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  $('#totals').textContent = `${s.total_files} קבצים · ${fmt(s.total_bytes)}`;
+
+  // guild select
+  if(s.server && s.server.guild_id){
+    const g = $('#guild');
+    if(![...g.options].some(o=>o.value===s.server.guild_id)){
+      g.innerHTML = `<option value="${s.server.guild_id}">${s.server.guild_name}</option>`;
+    }
+    g.value = s.server.guild_id;
+  }
+
+  // courses
+  $('#mkForums').checked = s.auto_create_forums !== false;
+  $('#courses').innerHTML = s.courses.map(co => {
+    const rowsHtml = co.files.map(f => {
+      const st = f.status || 'unknown';
+      const over = f.over_nitro ? ' <span class="chip c-manual">מעל 500MB</span>' : '';
+      return `<tr>
+        <td style="width:26px"><input type="checkbox" class="pick"
+             data-key="${esc(f.key)}" ${f.selected!==false?'checked':''}
+             style="width:auto;margin:0"></td>
+        <td>${f.title}</td>
+        <td><span class="chip c-${st}">${LABEL[st]||st}</span>${over}</td>
+        <td class="sz">${fmt(f.size)}</td></tr>`;
+    }).join('');
+    const pend = co.files.filter(f=>f.status!=='done'&&f.status!=='already').length;
+    const on = co.files.filter(f=>f.selected!==false).length;
+    return `<details>
+      <summary><span>
+        <input type="checkbox" class="pickCourse" data-course="${esc(co.name)}"
+               ${on===co.files.length?'checked':''}
+               style="width:auto;margin:0 0 0 8px">${co.name}</span>
+        <span class="muted" style="font-weight:400">
+          ${co.files.length} קבצים · ${fmt(co.bytes)} · ${pend} ממתינים${
+            on < co.files.length ? ' · נבחרו ' + on : ''}</span>
+      </summary>
+      <table>${rowsHtml}</table></details>`;
+  }).join('');
+  wirePicks(s);
+
+  if (typeof renderMap === 'function') renderMap();
+  if (typeof renderQueue === 'function') renderQueue();
+}
+
+// ---- selection ---------------------------------------------------------
+// The server stores null for "everything"; the UI always works with a real
+// set and collapses back to null when every file is ticked, so a rescan that
+// adds files does not silently leave them out.
+const esc = t => String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+                          .replace(/</g,'&lt;');
+
+function allKeys(s){ return s.courses.flatMap(c => c.files.map(f => f.key)); }
+
+function currentSet(s){
+  return new Set(s.selected === null || s.selected === undefined
+      ? allKeys(s) : s.selected);
+}
+
+async function pushSelection(s, set){
+  const total = allKeys(s).length;
+  const keys = set.size >= total ? null : [...set];
+  S = await api('/api/select', {keys});
+  render(S);
+}
+
+function wirePicks(s){
+  const total = allKeys(s).length;
+  const on = s.selected === null || s.selected === undefined
+      ? total : s.selected.length;
+  $('#pickInfo').textContent = on === total
+      ? `כל ${total} הקבצים`
+      : `נבחרו ${on} מתוך ${total}`;
+
+  document.querySelectorAll('.pick').forEach(cb => {
+    cb.onchange = async () => {
+      const set = currentSet(S);
+      cb.checked ? set.add(cb.dataset.key) : set.delete(cb.dataset.key);
+      await pushSelection(S, set);
+    };
+  });
+  document.querySelectorAll('.pickCourse').forEach(cb => {
+    cb.onclick = e => e.stopPropagation();   // do not toggle the <details>
+    cb.onchange = async () => {
+      const co = S.courses.find(c => c.name === cb.dataset.course);
+      if(!co) return;
+      const set = currentSet(S);
+      co.files.forEach(f => cb.checked ? set.add(f.key) : set.delete(f.key));
+      await pushSelection(S, set);
+    };
+  });
+}
+
+$('#btnPickAll').onclick  = async () => { S = await api('/api/select', {keys:null}); render(S); };
+$('#btnPickNone').onclick = async () => { S = await api('/api/select', {keys:[]});   render(S); };
+$('#mkForums').onchange   = async () => {
+  S = await api('/api/settings', {auto_create_forums: $('#mkForums').checked});
+  render(S);
+};
+
+async function poll(){
+  const p = await api('/api/progress');
+  const on = p.running;
+  $('#progCard').style.display = on ? '' : 'none';
+  $('#btnStop').disabled = !on;
+  ['#btnStructure','#btnOptimize','#btnUpload','#btnAll'].forEach(
+    id => $(id).disabled = on);
+  $('#btnStructure').disabled = on || !$('#mkForums').checked;
+  if(on){
+    $('#phase').textContent = p.phase;
+    $('#counter').textContent = `${p.done} / ${p.total}` +
+      (p.errors ? `  ·  ${p.errors} שגיאות` : '');
+    $('#current').textContent = (p.note ? '⏳ ' + p.note + '  —  ' : '') + (p.current || '');
+    $('#barTotal').style.width = p.total ? (100*p.done/p.total)+'%' : '0%';
+    $('#barItem').style.width  = (100*(p.item_pct||0))+'%';
+  }
+  const log = $('#log');
+  const stick = log.scrollTop + log.clientHeight >= log.scrollHeight - 30;
+  log.textContent = (p.log||[]).join('\n');
+  if(stick) log.scrollTop = log.scrollHeight;
+
+  if(!on && polling){ polling = false; render(await api('/api/state')); }
+  if(on) polling = true;
+}
+
+$('#btnConnect').onclick = async () => {
+  const r = await api('/api/connect', {token: $('#token').value,
+                                       guild_id: $('#guild').value});
+  if(r.error) return alert(r.error);
+  if(r.guilds && r.guilds.length > 1 && !r.settings.guild_id){
+    $('#guild').innerHTML = '<option value="">— בחר שרת —</option>' +
+      r.guilds.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+    alert('הבוט נמצא בכמה שרתים — בחר אחד ולחץ "התחבר" שוב.');
+  }
+  render(r);
+};
+$('#btnSave').onclick = async () => {
+  await api('/api/settings', {root:$('#root').value,
+                              optimized_dir:$('#optdir').value});
+  render(await api('/api/scan'));
+};
+$('#btnRefresh').onclick = async () => {
+  const r = await api('/api/refresh'); if(r.error) return alert(r.error); render(r);
+};
+const run = m => async () => {
+  const r = await api('/api/run', {mode:m});
+  if(r.error) alert(r.error); else { polling = true; poll(); }
+};
+$('#btnStructure').onclick = run('structure');
+$('#btnOptimize').onclick  = run('optimize');
+$('#btnThreads').onclick   = run('threads');
+$('#btnUpload').onclick    = run('upload');
+$('#btnAll').onclick       = run('all');
+$('#btnStop').onclick      = () => api('/api/stop', {});
+$('#btnReset').onclick = async () => {
+  const alsoThreads = confirm(
+    'לאפס גם את רשימת הדיונים שנוצרו? אישור = לשכוח גם אילו דיונים נוצרו (אם מחקת אותם בדיסקורד). ביטול = לאפס רק את סימוני ההעלאה.');
+  const r = await api('/api/reset', {threads: alsoThreads});
+  if(r.error) return alert(r.error);
+  qi = 0; render(r);
+};
+
+// ---- course -> forum mapping ----
+function renderMap(){
+  const m = (S && S.matches) || [], all = (S && S.all_forums) || [];
+  const card = $('#mapCard');
+  if(!m.length){ card.style.display='none'; return; }
+  card.style.display = '';
+  const missing = m.filter(x => !x.forum_id).length;
+  $('#mapWarn').innerHTML = missing
+    ? `<span style="color:var(--warn)">${missing} ללא פורום — ייווצרו בשלב 1</span>`
+    : `<span style="color:var(--ok)">כל ${m.length} הקורסים משויכים</span>`;
+
+  $('#mapTable').innerHTML = m.map(x => {
+    const opts = ['<option value="">— אין / צור חדש —</option>']
+      .concat(all.map(f => `<option value="${f.id}" ${f.id===x.forum_id?'selected':''}>`
+        + `${f.name}${f.category?' · '+f.category:''} (${f.posts})</option>`)).join('');
+    const badge = !x.forum_id ? '<span class="chip c-needs_optimize">חסר</span>'
+      : x.pinned ? '<span class="chip c-bot_ready">ידני</span>'
+      : x.score >= 95 ? '<span class="chip c-done">מדויק</span>'
+      : `<span class="chip c-manual">דמיון ${x.score}%</span>`;
+    return `<tr>
+      <td style="width:34%">${x.course}</td>
+      <td style="width:12%">${badge}</td>
+      <td><select data-course="${x.course.replace(/"/g,'&quot;')}"
+           class="mapsel">${opts}</select></td></tr>`;
+  }).join('');
+
+  document.querySelectorAll('.mapsel').forEach(sel => {
+    sel.onchange = async () => {
+      const r = await api('/api/map', {course: sel.dataset.course,
+                                       channel_id: sel.value});
+      if(r.error) return alert(r.error);
+      render(r);
+    };
+  });
+}
+
+// ---- hand-upload assembly line ----
+let qi = 0;                       // index into S.queue
+
+function renderQueue(){
+  const q = (S && S.queue) || [];
+  const card = $('#manualCard');
+  if(!q.length){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  if(qi >= q.length) qi = 0;
+  const it = q[qi];
+  const totalDone = (S.counts.done||0) + (S.counts.already||0);
+  const grand = S.total_files;
+  $('#qCount').textContent = `נותרו ${q.length} · הושלמו ${totalDone}/${grand}`;
+  $('#qBar').style.width = grand ? (100*totalDone/grand)+'%' : '0%';
+  $('#qNow').innerHTML =
+    `<div style="font-size:16px;font-weight:700;margin-bottom:3px">${it.title}</div>
+     <div class="muted" style="font-size:12px">#${it.course} · ${fmt(it.size)}
+       ${it.optimized?' · <span class="chip c-bot_ready">דחוס</span>':''}
+       ${it.url?'':' · <span class="chip c-needs_optimize">אין דיון — הרץ שלב 3</span>'}</div>`;
+  const nxt = q.slice(qi+1, qi+4).map(x=>x.title).join('  •  ');
+  $('#qNext').textContent = nxt ? 'הבאים בתור:  ' + nxt : '';
+}
+
+let watchTimer = null, lastFired = null, useEnter = true;
+
+function qsay(t){ $('#qStatus').innerHTML = t; }
+function stopWatch(){ if(watchTimer){ clearInterval(watchTimer); watchTimer = null; } }
+
+// Open the post in the DESKTOP app and put the file on the clipboard, so the
+// only thing left to do is Ctrl+V then Enter.
+async function prepareCurrent(){
+  const q = (S && S.queue) || [];
+  if(!q.length){ qsay('אין מה להעלות 🎉'); stopWatch(); return; }
+  if(qi >= q.length) qi = 0;
+  const it = q[qi];
+  if(!it.thread_id){
+    qsay('<span style="color:var(--warn)">אין דיון לקובץ הזה — הרץ שלב 3</span>');
+    return;
+  }
+  const r = await api('/api/manual/prepare', {key: it.key, open: true,
+                                              watch_enter: true});
+  if(r.error){ qsay('<span style="color:var(--bad)">'+r.error+'</span>'); return; }
+  useEnter = !!r.watching_enter;
+  qsay('<b>' + r.title + '</b> · ' + Math.round(r.size/1048576) + ' MB — בדיסקורד: '
+     + '<b>Ctrl+V</b> ואז <b>Enter</b>'
+     + ($('#hands').checked
+         ? (useEnter ? ' · עובר לבא ברגע שתלחץ Enter'
+                     : ' · ממתין לסיום ההעלאה')
+         : ''));
+  if($('#hands').checked) startWatch(it.key);
+}
+
+// Prefer the Enter keystroke: it fires the moment you send, so the next file
+// is ready while Discord is still uploading the previous one. Falls back to
+// polling the post if the key listener could not start.
+function startWatch(key){
+  stopWatch();
+  lastFired = null;
+  watchTimer = setInterval(async () => {
+    try {
+      if(useEnter){
+        const sig = await api('/api/manual/signal', {});
+        if(!sig.available){ useEnter = false; return; }
+        if(lastFired === null){ lastFired = sig.fired; return; }
+        if(sig.fired > lastFired){
+          stopWatch();
+          S = await api('/api/state'); render(S);
+          if((S.queue || []).length) await prepareCurrent();
+          else qsay('הכל הועלה 🎉');
+        }
+      } else {
+        const r = await api('/api/manual/check', {key});
+        if(r && r.filled){
+          stopWatch();
+          S = await api('/api/state'); render(S);
+          if((S.queue || []).length) await prepareCurrent();
+          else qsay('הכל הועלה 🎉');
+        }
+      }
+    } catch(e){ /* transient */ }
+  }, 400);
+}
+
+$('#btnClip').onclick = prepareCurrent;
+$('#btnDone').onclick = async () => {
+  const q = (S && S.queue) || []; if(!q.length) return;
+  stopWatch();
+  await api('/api/manual/disarm', {});
+  S = await api('/api/manual_done', {key: q[qi].key});
+  render(S);
+  if($('#hands').checked && (S.queue||[]).length) prepareCurrent();
+};
+$('#btnSkip').onclick = async () => {
+  const q = (S && S.queue) || []; if(!q.length) return;
+  stopWatch();
+  await api('/api/manual/disarm', {});
+  qi = (qi + 1) % q.length; renderQueue();
+};
+$('#hands').onchange = () => { if(!$('#hands').checked) stopWatch(); };
+
+// ---- auto mode: the panel types Ctrl+V / Enter itself -------------------
+let autoTimer = null;
+
+function asay(t){ $('#autoLine').innerHTML = t; }
+
+async function autoPoll(){
+  let r;
+  try { r = await api('/api/auto/status', {}); } catch(e){ return; }
+  $('#autoStat').textContent = r.running
+      ? ('נשלחו ' + r.sent + '/' + r.target
+         + ' · אושרו ' + r.confirmed
+         + ' · באוויר ' + r.inflight)
+      : '';
+  let line = '';
+  if(r.current) line += '<b>' + r.current + '</b> — שולח…';
+  else if(r.note) line += r.note;
+  if(r.failed) line += ' <span style="color:var(--warn)">· ' + r.failed
+                     + ' לא הגיעו — חזרו לתור</span>';
+  if(r.error) line += ' <span style="color:var(--bad)">· ' + r.error + '</span>';
+  asay(line);
+  if(!r.running){
+    clearInterval(autoTimer); autoTimer = null;
+    $('#btnAuto').disabled = false;
+    S = await api('/api/state'); render(S);
+    asay((line ? line + '<br>' : '')
+         + 'סיום · נשלחו ' + r.sent
+         + ' · אושרו ' + r.confirmed);
+  }
+}
+
+$('#btnAuto').onclick = async () => {
+  stopWatch();
+  await api('/api/manual/disarm', {});
+  const r = await api('/api/auto/start', {
+    count: +$('#aCount').value || 0,
+    window: +$('#aWin').value || 3,
+    paste_wait: +$('#aWait').value || 2.5});
+  if(r.error){ asay('<span style="color:var(--bad)">' + r.error + '</span>'); return; }
+  $('#btnAuto').disabled = true;
+  asay('רץ… אל תיגע במקלדת');
+  if(autoTimer) clearInterval(autoTimer);
+  autoTimer = setInterval(autoPoll, 1500);
+  autoPoll();
+};
+
+$('#btnAutoStop').onclick = async () => {
+  await api('/api/auto/stop', {});
+  autoPoll();
+};
+
+(async () => { render(await api('/api/state')); setInterval(poll, 1000); })();
+</script>
+</body>
+</html>
