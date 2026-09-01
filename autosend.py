@@ -6,7 +6,7 @@ Everything here is deliberately paranoid, because the failure mode is posting a
 video into the wrong lecture:
 
   * the post is confirmed OPEN by reading the Discord window title, which
-    carries the post name in quotes ('"תרגול 13" | ספרייה - Discord')
+    carries the post name in quotes ('"Tutorial 13" | Library - Discord')
   * focus is re-checked immediately before the paste AND before Enter
   * anything unexpected aborts the batch instead of guessing
 

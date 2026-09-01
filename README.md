@@ -16,7 +16,7 @@ Start Panel.bat          →  opens http://127.0.0.1:7333
 ## What it does
 
 The library is scanned from the parent folder: one subfolder per course, MP4s
-inside. Course, lecture number, part and type (הרצאה / תרגול / מרתון — lecture / tutorial / marathon) are
+inside. Course, lecture number, part and type (lecture, tutorial, workshop, marathon, review) are
 parsed from the filenames, so posts come out titled and tagged in order.
 
 | Step | What happens |
@@ -51,18 +51,18 @@ to the selection only — step 1 creates forums only for the courses involved,
 step 3 creates only those posts, and the upload queue holds only those files.
 With nothing ticked, the whole library is in scope.
 
-## Language
+## Adapting it to your own library
 
-The interface is English. The Hebrew still in the source is deliberate, and it
-is two different things:
+Two things are specific to the library you point this at, and both are meant to
+be edited:
 
-- **`library.py` is a parser, not interface text.** The recordings arrive named
-  `הרצאה 3 חלק ב.mp4` - "lecture 3, part B" - so the keyword table and the `חלק א/ב/ג`
-  (part A / B / C) matcher are
-  the input format. Translate them and the parser stops recognising real files.
-- **Text written *into* Discord follows the server, not the tool.** The category
-  name, forum topic, post body and fallback tag live in one block at the top of
-  `panel.py`. Change those five values to point this at an English server.
+- **`patterns.json` holds the filename vocabulary.** It is what turns a filename
+  into a type, a number and a part. Those strings are an input format, not
+  interface text - replace them with the words your own recordings use. Drop a
+  `patterns.local.json` beside it to override without editing a tracked file.
+- **`panel.py` holds the text written into Discord.** The category name, forum
+  topic, post body and fallback tag sit in one block at the top of the file.
+  Change those five values to match the server you are publishing to.
 
 ## Requirements
 
@@ -84,6 +84,7 @@ that way.**
 | `ui.html` | the whole interface |
 | `discord_api.py` | REST client with rate-limit bucket tracking |
 | `library.py` | filename → course / type / number / part |
+| `patterns.json` | the filename vocabulary the parser matches |
 | `optimizer.py` | ffmpeg two-pass shrink with a completeness check |
 | `keywatch.py` | fires when *you* press Enter inside Discord |
 | `autosend.py` | types Ctrl+V / Enter into Discord for the automatic mode |

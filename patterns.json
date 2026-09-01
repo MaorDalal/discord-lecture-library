@@ -1,0 +1,17 @@
+{
+  "_comment": "Filename vocabulary. This is an input format, not interface text: it describes how YOUR recordings are named. Drop a patterns.local.json beside this file to override it without editing a tracked file.",
+
+  "part_prefix": "part",
+  "part_letters": { "a": 1, "b": 2, "c": 3, "d": 4, "e": 5 },
+
+  "types": [
+    { "match": "lecture",  "key": "lecture",  "rank": 1, "label": "lecture",  "emoji": "📘" },
+    { "match": "tutorial", "key": "tutorial", "rank": 2, "label": "tutorial", "emoji": "✏️" },
+    { "match": "workshop", "key": "workshop", "rank": 3, "label": "workshop", "emoji": "🛠️" },
+    { "match": "boost",    "key": "boost",    "rank": 4, "label": "boost",    "emoji": "🚀" },
+    { "match": "marathon", "key": "marathon", "rank": 5, "label": "marathon", "emoji": "🏃" },
+    { "match": "review",   "key": "review",   "rank": 6, "label": "review",   "emoji": "🔁" }
+  ],
+
+  "other": { "label": "other", "emoji": "📄" }
+}

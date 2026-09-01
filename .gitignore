@@ -13,3 +13,6 @@ __pycache__/
 build/
 dist/
 *.spec
+
+# local filename vocabulary override
+patterns.local.json

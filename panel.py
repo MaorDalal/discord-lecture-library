@@ -66,14 +66,16 @@ PORT = 7333
 
 # --------------------------------------------------------------- server text
 # Text this tool writes INTO Discord, as opposed to the text it shows in its
-# own panel. The panel is English. These follow the language of your server,
-# and the defaults are Hebrew because that is the server this was built for.
-# Change the five values below to match yours; nothing else needs to change.
-CATEGORY_NAME = "📚 הספרייה"
-GUILD_NAME_HINT = "ספרי"
-FORUM_TOPIC = "הקלטות הקורס"
-TAG_OTHER = "אחר"
-POST_BODY = "**%s**\n%s\n\n*ההקלטה תועלה לכאן.*"
+# own panel. These follow the language of the server you publish to, so they
+# live here rather than being scattered through the code. Change the five
+# values below to match your server; nothing else needs to change.
+# GUILD_NAME_HINT is a substring used to auto-pick the server; empty means
+# take the first one the bot is in.
+CATEGORY_NAME = "📚 The Library"
+GUILD_NAME_HINT = ""
+FORUM_TOPIC = "Course recordings"
+TAG_OTHER = "other"
+POST_BODY = "**%s**\n%s\n\n*The recording will be uploaded here.*"
 
 
 DEFAULT_STATE = {
@@ -132,8 +134,8 @@ def log(msg):
         job["log"].append("%s  %s" % (time.strftime("%H:%M:%S"), msg))
         del job["log"][:-400]
     # The Windows console defaults to a legacy codepage, so printing a title
-    # like "📘 הרצאה 1" raises UnicodeEncodeError and takes the whole request
-    # down with it. Logging must never be able to break the panel.
+    # containing non-ASCII characters raises UnicodeEncodeError and takes the
+    # whole request down with it. Logging must never be able to break the panel.
     try:
         print(msg)
     except Exception:
@@ -261,8 +263,8 @@ def norm_course(name):
     """Words only, lowercased.
 
     Discord rewrites channel names: spaces become hyphens and emoji/symbols
-    are kept. So 'אבטחת מידע וקריפטולוגיה' is stored as
-    'אבטחת-מידע-וקריפטולוגיה'. Every separator has to collapse to a space
+    are kept, so a course named 'Information Security' is stored as
+    'information-security'. Every separator has to collapse to a space
     or the two forms never line up.
     """
     out = []
@@ -471,7 +473,7 @@ def do_structure():
         if find_forum(course):
             log("forum for %s already exists" % course)
             continue
-        tags = sorted({library.TYPE_HE.get(r["type"], TAG_OTHER)
+        tags = sorted({library.TYPE_LABEL.get(r["type"], TAG_OTHER)
                        for r in rows if r["course"] == course})
         log("creating forum #%s (tags: %s)" % (course, ", ".join(tags)))
         try:
@@ -607,7 +609,7 @@ def do_threads():
                     % (p["title"][:34], p["course"]))
             continue
         tag_ids = [t["id"] for t in f["tags"]
-                   if t["name"] == library.TYPE_HE.get(p["type"])]
+                   if t["name"] == library.TYPE_LABEL.get(p["type"])]
         body = POST_BODY % (p["title"], p["course"])
         try:
             th = d.create_post_textonly(f["id"], p["title"], body, tag_ids)
@@ -648,7 +650,7 @@ def do_upload():
             job["errors"] += 1
             continue
         tag_ids = [t["id"] for t in f["tags"]
-                   if t["name"] == library.TYPE_HE.get(p["type"])]
+                   if t["name"] == library.TYPE_LABEL.get(p["type"])]
         body = "**%s**\n%s" % (p["title"], p["course"])
         log("▲ %s → #%s (%.0f MB)"
             % (p["title"][:50], f["name"], p["eff_size"] / 1048576))

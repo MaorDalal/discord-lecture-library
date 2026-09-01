@@ -1,39 +1,54 @@
-"""Filename parser: course, type, lecture number, part.
-
-The Hebrew in this file is deliberate and must not be translated. It is not
-interface text - it is the input format. The recordings come out of a Hebrew
-university with names like "\u05d4\u05e8\u05e6\u05d0\u05d4 3 \u05d7\u05dc\u05e7 \u05d1.mp4", so the keyword table below and
-the "\u05d7\u05dc\u05e7 \u05d0/\u05d1/\u05d2" part matcher are what let the parser recognise its own
-input. TYPE_HE is likewise the set of tag names on the Discord forums, which
-live in a Hebrew server.
-
-Translate any of it and the parser stops matching real filenames.
-"""
 # -*- coding: utf-8 -*-
-"""Scanning and parsing of the lecture library."""
-import os, re, json
+"""Scanning and parsing of the lecture library.
 
-HEB_PART = {"א": 1, "ב": 2, "ג": 3, "ד": 4, "ה": 5}
-PART_HE = {v: k for k, v in HEB_PART.items()}
+The vocabulary this parser matches lives in `patterns.json` beside this file,
+not in the code. That is deliberate: the words in a filename are a property of
+the library you point the tool at, not of the tool. Editing them is the normal
+way to adapt it, and doing so in data rather than in code means you never have
+to read this module to do it.
 
-TYPES = [
-    ("הרצאה", "lecture",  1, "הרצאה"),
-    ("תרגול", "tutorial", 2, "תרגול"),
-    ("סדנא",  "workshop", 3, "סדנה"),
-    ("סדנה",  "workshop", 3, "סדנה"),
-    ("תגבור", "boost",    4, "תגבור"),
-    ("מרתון", "marathon", 5, "מרתון"),
-    ("חזרה",  "review",   6, "חזרה"),
-]
+Drop a `patterns.local.json` next to `patterns.json` to override it without
+touching a tracked file; it is gitignored.
+"""
 
-TYPE_HE = {
-    "lecture": "הרצאה", "tutorial": "תרגול", "workshop": "סדנה",
-    "boost": "תגבור", "marathon": "מרתון", "review": "חזרה", "other": "אחר",
-}
-TYPE_EMOJI = {
-    "lecture": "📘", "tutorial": "✏️", "workshop": "🛠️",
-    "boost": "🚀", "marathon": "🏃", "review": "🔁", "other": "📄",
-}
+import json
+import os
+import re
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _load_patterns():
+    """Read patterns.local.json if present, else patterns.json."""
+    for name in ("patterns.local.json", "patterns.json"):
+        path = os.path.join(_HERE, name)
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as fh:
+                return json.load(fh)
+    raise FileNotFoundError(
+        "no patterns.json next to library.py - the parser has no vocabulary")
+
+
+_P = _load_patterns()
+
+PART_PREFIX = _P["part_prefix"]
+PART_LETTERS = _P["part_letters"]                       # letter -> number
+PART_LABEL = {v: k for k, v in PART_LETTERS.items()}    # number -> letter
+
+# (match, key, rank) in declaration order - first hit wins, so if two entries
+# share a key (two spellings of the same word) put both in the list.
+TYPES = [(t["match"], t["key"], t["rank"]) for t in _P["types"]]
+
+TYPE_LABEL = {t["key"]: t["label"] for t in _P["types"]}
+TYPE_EMOJI = {t["key"]: t["emoji"] for t in _P["types"]}
+TYPE_LABEL["other"] = _P["other"]["label"]
+TYPE_EMOJI["other"] = _P["other"]["emoji"]
+
+# "part b" - one of the configured letters, not glued to another
+# word character. The numeric form ("part 2") is the fallback.
+_letters = "|".join(sorted((re.escape(k) for k in PART_LETTERS), key=len, reverse=True))
+_PART_LETTER_RE = re.compile(re.escape(PART_PREFIX) + r"\s+(" + _letters + r")(?!\w)", re.I)
+_PART_NUMBER_RE = re.compile(re.escape(PART_PREFIX) + r"\s+(\d+)", re.I)
 
 
 def detect(name):
@@ -41,15 +56,15 @@ def detect(name):
     base = os.path.splitext(name)[0]
 
     ttype, rank, num, kw_end = "other", 9, None, 0
-    for kw, canon, r, _he in TYPES:
-        m = re.search(re.escape(kw) + r"\s*(\d+)", base)
+    for kw, canon, r in TYPES:
+        m = re.search(re.escape(kw) + r"\s*(\d+)", base, re.I)
         if m:
             ttype, rank, num, kw_end = canon, r, int(m.group(1)), m.end()
             break
-        m = re.search(re.escape(kw), base)
+        m = re.search(re.escape(kw), base, re.I)
         if m:
             ttype, rank, kw_end = canon, r, m.end()
-            m2 = re.search(r"(\d+)\s*" + re.escape(kw), base)
+            m2 = re.search(r"(\d+)\s*" + re.escape(kw), base, re.I)
             if m2:
                 num = int(m2.group(1))
             break
@@ -60,11 +75,11 @@ def detect(name):
         topic = base[sep + 3:].strip()
 
     part = None
-    mp = re.search(r"חלק\s+([א-ת])(?![א-ת])", base)
+    mp = _PART_LETTER_RE.search(base)
     if mp:
-        part = HEB_PART.get(mp.group(1))
+        part = PART_LETTERS.get(mp.group(1))
     else:
-        mp = re.search(r"חלק\s+(\d+)", base)
+        mp = _PART_NUMBER_RE.search(base)
         if mp:
             part = int(mp.group(1))
 
@@ -79,13 +94,14 @@ def detect(name):
 
 
 def thread_title(row):
-    """Clean, sortable Hebrew forum-post title."""
-    bits = [TYPE_EMOJI.get(row["type"], "📄"), TYPE_HE.get(row["type"], "")]
+    """Clean, sortable forum-post title."""
+    bits = [TYPE_EMOJI.get(row["type"], TYPE_EMOJI["other"]),
+            TYPE_LABEL.get(row["type"], "")]
     if row["num"]:
         bits.append(str(row["num"]))
     if row["part"]:
-        # keep the library's own convention: חלק א / ב / ג, not חלק 1
-        bits.append("חלק " + PART_HE.get(row["part"], str(row["part"])))
+        # keep the library's own convention - lettered parts, not "part 1"
+        bits.append(PART_PREFIX + " " + PART_LABEL.get(row["part"], str(row["part"])))
     title = " ".join(b for b in bits if b)
     if row.get("topic"):
         title += " — " + row["topic"]
