@@ -57,7 +57,8 @@ The interface is English. The Hebrew still in the source is deliberate, and it
 is two different things:
 
 - **`library.py` is a parser, not interface text.** The recordings arrive named
-  `הרצאה 3 חלק ב.mp4`, so the keyword table and the `חלק א/ב/ג` part matcher are
+  `הרצאה 3 חלק ב.mp4` - "lecture 3, part B" - so the keyword table and the `חלק א/ב/ג`
+  (part A / B / C) matcher are
   the input format. Translate them and the parser stops recognising real files.
 - **Text written *into* Discord follows the server, not the tool.** The category
   name, forum topic, post body and fallback tag live in one block at the top of
