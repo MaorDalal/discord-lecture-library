@@ -1,3 +1,14 @@
+"""Filename parser: course, type, lecture number, part.
+
+The Hebrew in this file is deliberate and must not be translated. It is not
+interface text - it is the input format. The recordings come out of a Hebrew
+university with names like "\u05d4\u05e8\u05e6\u05d0\u05d4 3 \u05d7\u05dc\u05e7 \u05d1.mp4", so the keyword table below and
+the "\u05d7\u05dc\u05e7 \u05d0/\u05d1/\u05d2" part matcher are what let the parser recognise its own
+input. TYPE_HE is likewise the set of tag names on the Discord forums, which
+live in a Hebrew server.
+
+Translate any of it and the parser stops matching real filenames.
+"""
 # -*- coding: utf-8 -*-
 """Scanning and parsing of the lecture library."""
 import os, re, json

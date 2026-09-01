@@ -64,12 +64,24 @@ ASSETS = getattr(sys, "_MEIPASS", HERE)
 STATE_PATH = os.path.join(HERE, "state.json")
 PORT = 7333
 
+# --------------------------------------------------------------- server text
+# Text this tool writes INTO Discord, as opposed to the text it shows in its
+# own panel. The panel is English. These follow the language of your server,
+# and the defaults are Hebrew because that is the server this was built for.
+# Change the five values below to match yours; nothing else needs to change.
+CATEGORY_NAME = "📚 הספרייה"
+GUILD_NAME_HINT = "ספרי"
+FORUM_TOPIC = "הקלטות הקורס"
+TAG_OTHER = "אחר"
+POST_BODY = "**%s**\n%s\n\n*ההקלטה תועלה לכאן.*"
+
+
 DEFAULT_STATE = {
     "root": os.path.dirname(HERE),
     "optimized_dir": os.path.join(os.path.dirname(HERE), "_optimized"),
     "token": "",
     "guild_id": "",
-    "category_name": "📚 הספרייה",
+    "category_name": CATEGORY_NAME,
     "done": {},        # key -> {thread_id, forum_id, when}
     "optimized": {},   # key -> {path, size}
     "manual_done": {},
@@ -134,7 +146,7 @@ def log(msg):
 # ------------------------------------------------------------- discovery
 def _on_wait(secs, reason):
     if secs >= 5:
-        job["phase_note"] = "ממתין %ds (%s)" % (int(secs), reason)
+        job["phase_note"] = "waiting %ds (%s)" % (int(secs), reason)
         log("⏳ waiting %ds — %s (Discord allows 50 posts / 5 min, server-wide)"
             % (int(secs), reason))
 
@@ -152,7 +164,7 @@ def refresh_server():
     gid = state.get("guild_id")
     if not gid:
         gs = d.guilds()
-        pick = next((g for g in gs if "ספרי" in g.get("name", "")), None) or (gs[0] if gs else None)
+        pick = next((g for g in gs if GUILD_NAME_HINT in g.get("name", "")), None) or (gs[0] if gs else None)
         if not pick:
             raise DiscordError("the bot is not in any server yet — invite it first")
         gid = pick["id"]
@@ -430,7 +442,7 @@ def worker(mode):
 
 def do_structure():
     """Create one forum channel per course, with tags."""
-    job["phase"] = "בניית מבנה"
+    job["phase"] = "building structure"
     if not state.get("auto_create_forums", True):
         log("creating forums is switched off - skipping step 1")
         return
@@ -438,7 +450,7 @@ def do_structure():
     gid = server_info["guild_id"]
 
     cat_id = None
-    want = state.get("category_name") or "📚 הספרייה"
+    want = state.get("category_name") or CATEGORY_NAME
     for cid, nm in server_info.get("categories", {}).items():
         if norm_course(nm) == norm_course(want):
             cat_id = cid
@@ -459,12 +471,12 @@ def do_structure():
         if find_forum(course):
             log("forum for %s already exists" % course)
             continue
-        tags = sorted({library.TYPE_HE.get(r["type"], "אחר")
+        tags = sorted({library.TYPE_HE.get(r["type"], TAG_OTHER)
                        for r in rows if r["course"] == course})
         log("creating forum #%s (tags: %s)" % (course, ", ".join(tags)))
         try:
             d.create_forum(gid, course[:100], parent_id=cat_id,
-                           topic="הקלטות הקורס", tags=tags)
+                           topic=FORUM_TOPIC, tags=tags)
         except DiscordError as e:
             log("  ✖ %s" % e)
             job["errors"] += 1
@@ -475,7 +487,7 @@ def do_structure():
 def do_optimize():
     """Shrink everything that exceeds the relevant ceiling."""
     ceiling = upload_ceiling()
-    job["phase"] = "דחיסה (יעד %d MB)" % ceiling
+    job["phase"] = "compressing (target %d MB)" % ceiling
     todo = [p for p in build_plan().values()
             if p["status"] == "needs_optimize" and in_scope(p["key"])]
     todo.sort(key=lambda p: -p["size"])   # slowest first
@@ -548,7 +560,7 @@ def do_threads():
     the whole skeleton. That turns each remaining upload into: click the
     post, Ctrl+V, Enter -- no typing, no naming, no sorting.
     """
-    job["phase"] = "יצירת דיונים"
+    job["phase"] = "creating threads"
     d = dc()
     state.setdefault("threads", {})
     plan = build_plan()
@@ -596,8 +608,7 @@ def do_threads():
             continue
         tag_ids = [t["id"] for t in f["tags"]
                    if t["name"] == library.TYPE_HE.get(p["type"])]
-        body = ("**%s**\n%s\n\n*ההקלטה תועלה לכאן.*"
-                % (p["title"], p["course"]))
+        body = POST_BODY % (p["title"], p["course"])
         try:
             th = d.create_post_textonly(f["id"], p["title"], body, tag_ids)
             state["threads"][p["key"]] = th.get("id")
@@ -613,7 +624,7 @@ def do_threads():
 def do_upload():
     """Bot-upload everything that fits the server cap."""
     cap = server_info.get("cap_mb", 0)
-    job["phase"] = "העלאה (מגבלת בוט %d MB)" % cap
+    job["phase"] = "uploading (bot limit %d MB)" % cap
     d = dc()
     plan = build_plan()
     todo = [p for p in plan.values()
@@ -838,7 +849,8 @@ def _auto_send_one(item, paste_wait):
     # Holding the WINDOW is not the same as holding the MESSAGE BOX: after a
     # foreground bounce Discord often focuses the post body, where Enter does
     # nothing at all and the file just sits there staged - that is exactly how
-    # תרגול 2 ended up with two unsent copies. Click the box, then send.
+    # one tutorial thread ended up with two unsent copies. Click the box,
+    # then send.
     autosend.click_composer(hwnd)
     time.sleep(0.15)
     autosend.enter()

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>הספרייה — לוח העלאה</title>
+<title>The Library - Upload Panel</title>
 <style>
   :root{
     --bg:#0e1116; --panel:#161b23; --panel2:#1c222c; --line:#262d38;
@@ -51,7 +51,7 @@
   table{width:100%;border-collapse:collapse}
   td{padding:7px 14px;border-top:1px solid var(--line);font-size:12.5px;
     vertical-align:middle}
-  td.sz{color:var(--dim);white-space:nowrap;text-align:left;
+  td.sz{color:var(--dim);white-space:nowrap;text-align:right;
     font-variant-numeric:tabular-nums}
   .bar{height:7px;background:var(--panel2);border-radius:99px;overflow:hidden;
     border:1px solid var(--line)}
@@ -71,88 +71,88 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>📚 הספרייה — לוח העלאה</h1>
-  <div class="sub">דוחס, מסדר ומעלה הרצאות לפורומים בדיסקורד. כל הפעולות דרך בוט רשמי.</div>
+  <h1>📚 The Library - Upload Panel</h1>
+  <div class="sub">Compresses, sorts and uploads lecture recordings into Discord forums. Every action goes through an official bot.</div>
 
   <div id="banners"></div>
 
   <div class="card">
     <div class="row">
       <div class="grow">
-        <label>טוקן של הבוט (Bot Token)</label>
-        <input id="token" type="password" placeholder="מ־Developer Portal ← Bot ← Reset Token">
+        <label>Bot token</label>
+        <input id="token" type="password" placeholder="From Developer Portal -&gt; Bot -&gt; Reset Token">
       </div>
       <div style="min-width:210px">
-        <label>שרת</label>
-        <select id="guild"><option value="">— התחבר קודם —</option></select>
+        <label>Server</label>
+        <select id="guild"><option value="">- connect first -</option></select>
       </div>
-      <div style="align-self:flex-end"><button id="btnConnect">התחבר</button></div>
+      <div style="align-self:flex-end"><button id="btnConnect">Connect</button></div>
     </div>
     <div class="row" style="margin-top:12px">
       <div class="grow">
-        <label>תיקיית הספרייה</label><input id="root">
+        <label>Library folder</label><input id="root">
       </div>
       <div class="grow">
-        <label>תיקיית קבצים דחוסים</label><input id="optdir">
+        <label>Compressed output folder</label><input id="optdir">
       </div>
-      <div style="align-self:flex-end"><button class="ghost" id="btnSave">שמור וסרוק</button></div>
+      <div style="align-self:flex-end"><button class="ghost" id="btnSave">Save and scan</button></div>
     </div>
   </div>
 
   <div class="card">
     <div class="tiles" id="tiles"></div>
     <div class="row" style="margin-top:14px">
-      <button id="btnStructure">1 · בנה פורומים</button>
-      <button id="btnOptimize">2 · דחוס גדולים</button>
-      <button id="btnThreads">3 · צור דיונים</button>
-      <button class="ghost" id="btnAll">הרץ 1‑2‑3</button>
-      <button class="ghost" id="btnUpload" title="רק לקבצים מתחת למגבלת הבוט">העלה דרך הבוט</button>
-      <button class="danger" id="btnStop" disabled>עצור</button>
-      <button class="ghost" id="btnRefresh">רענן</button>
+      <button id="btnStructure">1 &middot; Build forums</button>
+      <button id="btnOptimize">2 &middot; Compress large files</button>
+      <button id="btnThreads">3 &middot; Create threads</button>
+      <button class="ghost" id="btnAll">Run 1-2-3</button>
+      <button class="ghost" id="btnUpload" title="Only for files under the bot size limit">Upload via bot</button>
+      <button class="danger" id="btnStop" disabled>Stop</button>
+      <button class="ghost" id="btnRefresh">Refresh</button>
       <label style="display:flex;align-items:center;gap:6px;margin:0;
                     font-size:13px;color:var(--tx);cursor:pointer"
-             title="כשמכובה, שלב 1 לא רץ ושלב 3 מעלה רק לפורומים קיימים">
+             title="When off, step 1 does not run and step 3 publishes only into existing forums">
         <input type="checkbox" id="mkForums" checked style="width:auto;margin:0">
-        צור פורומים אוטומטית
+        Create forums automatically
       </label>
-      <button class="ghost" id="btnReset" title="שכח התקדמות מקומית וסרוק את השרת מחדש">אפס התקדמות</button>
+      <button class="ghost" id="btnReset" title="Forget local progress and rescan the server">Reset progress</button>
     </div>
   </div>
 
   <div class="card" id="mapCard" style="display:none">
     <div class="row" style="justify-content:space-between;margin-bottom:4px">
-      <b>שיוך תיקייה ← פורום</b>
+      <b>Folder -&gt; forum mapping</b>
       <span class="muted" id="mapWarn"></span>
     </div>
     <div class="sub" style="margin-bottom:10px">
-      זוהה אוטומטית. אם משהו שויך לפורום הלא נכון — בחר ידנית כאן.
-      הקטגוריה שבה נמצא הפורום לא משנה.
+      Detected automatically. If something was matched to the wrong forum, pick it by hand here.
+      The category the forum sits in does not matter.
     </div>
     <table id="mapTable"></table>
   </div>
 
   <div class="card" id="manualCard" style="display:none">
     <div class="row" style="justify-content:space-between;margin-bottom:4px">
-      <b>4 · העלאה ידנית (הניטרו שלך — 500MB)</b>
+      <b>4 &middot; Manual upload (your Nitro - 500 MB)</b>
       <span class="muted" id="qCount"></span>
     </div>
     <div class="sub" style="margin-bottom:12px">
-      לחץ <b>התחל</b> פעם אחת. אפליקציית דיסקורד נפתחת על הדיון הנכון והקובץ כבר בלוח ההעתקה.
-      עכשיו רק <b>Ctrl+V</b> ואז <b>Enter</b> — ובאותו רגע הלוח כבר קופץ לדיון הבא עם הקובץ הבא
-      בלוח, בלי לחכות שההעלאה תסתיים. ההעלאה הקודמת ממשיכה ברקע.
-      אין גרירה, אין הקלדת שמות, ואין דפדפן.
+      Press <b>Start</b> once. The Discord desktop app opens on the right thread, with the file already on the clipboard.
+      Now just <b>Ctrl+V</b> then <b>Enter</b> - and at that moment the panel has already jumped to the next thread, with the next file
+      on the clipboard, without waiting for the upload to finish. The previous upload carries on in the background.
+      No dragging, no typing filenames, no browser.
     </div>
     <div class="bar" style="margin-bottom:12px"><i id="qBar"></i></div>
     <div id="qNow" style="background:var(--panel2);border:1px solid var(--line);
          border-radius:10px;padding:14px;margin-bottom:10px"></div>
     <div class="row">
-      <button id="btnClip">▶ התחל / הבא</button>
-      <button class="ghost" id="btnDone">✔ בוצע ידנית</button>
-      <button class="ghost" id="btnSkip">דלג</button>
+      <button id="btnClip">&#9654; Start / Next</button>
+      <button class="ghost" id="btnDone">&#10004; Done by hand</button>
+      <button class="ghost" id="btnSkip">Skip</button>
       <label style="display:flex;align-items:center;gap:6px;margin:0;
                     font-size:13px;color:var(--tx);cursor:pointer">
         <input type="checkbox" id="hands" checked style="width:auto;margin:0">
-        מצב רצוף — ממשיך לבא אוטומטית
+        Continuous mode - advances on its own
       </label>
     </div>
     <div id="qStatus" class="sub" style="margin-top:10px;min-height:18px"></div>
@@ -160,33 +160,33 @@
 
     <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
       <div class="row" style="justify-content:space-between;margin-bottom:4px">
-        <b>🤖 אוטומטי — בלי לגעת במקלדת</b>
+        <b>&#129302; Automatic - hands off the keyboard</b>
         <span class="muted" id="autoStat"></span>
       </div>
       <div class="sub" style="margin-bottom:12px">
-        הפאנל פותח את הדיון, מוודא לפי כותרת החלון שזה באמת הדיון הנכון,
-        ואז מקליד בעצמו <b>Ctrl+V</b> ו־<b>Enter</b>. הוא לא מחכה לסיום ההעלאה —
-        ממשיך מיד לבא, ושומר כמה העלאות פעילות במקביל.
-        <b style="color:var(--warn)">אל תיגע במקלדת בזמן ריצה. Esc עוצר מיד.</b>
+        The panel opens the thread, confirms from the window title that it really is the right one,
+        then types <b>Ctrl+V</b> and <b>Enter</b> itself. It does not wait for the upload to finish -
+        it moves straight on, keeping several uploads in flight at once.
+        <b style="color:var(--warn)">Do not touch the keyboard while it runs. Esc stops it immediately.</b>
       </div>
       <div class="row">
         <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px">
-          כמה קבצים
+          How many files
           <input id="aCount" type="number" value="10" min="1" step="1"
                  style="width:80px;margin:0">
         </label>
         <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px">
-          במקביל
+          In parallel
           <input id="aWin" type="number" value="3" min="1" max="6" step="1"
                  style="width:70px;margin:0">
         </label>
         <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px">
-          השהיה אחרי הדבקה
+          Delay after paste
           <input id="aWait" type="number" value="2.5" min="0.8" step="0.5"
                  style="width:80px;margin:0">
         </label>
-        <button id="btnAuto">🤖 הפעל</button>
-        <button class="ghost" id="btnAutoStop">עצור (Esc)</button>
+        <button id="btnAuto">&#129302; Run</button>
+        <button class="ghost" id="btnAutoStop">Stop (Esc)</button>
       </div>
       <div class="sub" id="autoLine" style="margin-top:10px;min-height:18px"></div>
     </div>
@@ -202,23 +202,23 @@
   </div>
 
   <div class="card">
-    <label>יומן</label>
+    <label>Log</label>
     <div id="log"></div>
   </div>
 
   <div class="card">
     <div class="row" style="justify-content:space-between;margin-bottom:10px">
-      <b>הקורסים</b>
+      <b>Courses</b>
       <span class="muted" id="totals"></span>
     </div>
     <div class="row" style="margin-bottom:10px;gap:10px">
-      <button class="ghost" id="btnPickAll">בחר הכל</button>
-      <button class="ghost" id="btnPickNone">נקה בחירה</button>
+      <button class="ghost" id="btnPickAll">Select all</button>
+      <button class="ghost" id="btnPickNone">Clear selection</button>
       <span class="sub" id="pickInfo"></span>
     </div>
     <div class="sub" style="margin-bottom:10px">
-      סמן קבצים כדי לעבוד רק עליהם — שלבים 1–4 יתייחסו רק לבחירה.
-      ללא בחירה — כל הספרייה.
+      Tick files to work on those only - steps 1-4 then apply to the selection alone.
+      With nothing ticked, the whole library.
     </div>
     <div id="courses"></div>
   </div>
@@ -232,8 +232,8 @@ const fmt = b => b > 1073741824 ? (b/1073741824).toFixed(1)+' GB'
                                 : Math.round(b/1048576)+' MB';
 
 const LABEL = {
-  done:'הועלה', already:'קיים בשרת', bot_ready:'מוכן לבוט',
-  needs_optimize:'צריך דחיסה', manual:'ידני', unknown:'—'
+  done:'uploaded', already:'on server', bot_ready:'bot ready',
+  needs_optimize:'needs compression', manual:'manual', unknown:'-'
 };
 
 async function api(path, body){
@@ -255,17 +255,17 @@ function render(s){
   // banners
   let b = '';
   if(!s.ffmpeg) b += banner('b-bad',
-    '⚠ <b>ffmpeg לא נמצא</b> — התקן עם <code>winget install Gyan.FFmpeg</code> ואז הפעל מחדש. בלעדיו אי אפשר לדחוס.');
+    '\u26a0 <b>ffmpeg not found</b> - install it with <code>winget install Gyan.FFmpeg</code>, then restart. Compression is impossible without it.');
   if(!s.server || !s.server.guild_id){
-    b += banner('b-warn','הכנס טוקן של בוט ולחץ "התחבר" כדי להתחיל.');
+    b += banner('b-warn','Enter a bot token and press "Connect" to start.');
   } else {
     const sv = s.server, cap = sv.cap_mb, s_ceiling = s.ceiling||480;
     const manual = (s.counts.needs_optimize||0);
     b += banner(cap >= 100 ? 'b-ok' : 'b-warn',
-      `<b>${sv.guild_name}</b> · בוסט: ${sv.tier_name} (${sv.boosts}) · ` +
-      `<b>מגבלת בוט: ${cap} MB</b>` +
+      `<b>${sv.guild_name}</b> &middot; Boost: ${sv.tier_name} (${sv.boosts}) · ` +
+      `<b>Bot limit: ${cap} MB</b>` +
       (cap < 100
-        ? ` — קטן מדי לוידאו, לכן הבוט בונה את המבנה ואתה מעלה את הקבצים עם הניטרו (500MB). יעד דחיסה: ${s_ceiling} MB.`
+        ? ` - too small for video, so the bot builds the structure and you upload the files with Nitro (500 MB). Compression target: ${s_ceiling} MB.`
         : ''));
   }
   $('#banners').innerHTML = b;
@@ -273,16 +273,16 @@ function render(s){
   // tiles
   const c = s.counts;
   const tiles = [
-    ['סה״כ סרטונים', s.total_files],
-    ['נפח כולל', fmt(s.total_bytes)],
-    ['כבר בשרת', (c.already||0)+(c.done||0)],
-    ['מוכן לבוט', c.bot_ready||0],
-    ['צריך דחיסה', c.needs_optimize||0],
+    ['Total videos', s.total_files],
+    ['Total size', fmt(s.total_bytes)],
+    ['Already on server', (c.already||0)+(c.done||0)],
+    ['Bot ready', c.bot_ready||0],
+    ['Needs compression', c.needs_optimize||0],
   ];
   $('#tiles').innerHTML = tiles.map(([l,n]) =>
     `<div class="tile"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
 
-  $('#totals').textContent = `${s.total_files} קבצים · ${fmt(s.total_bytes)}`;
+  $('#totals').textContent = `${s.total_files} files &middot; ${fmt(s.total_bytes)}`;
 
   // guild select
   if(s.server && s.server.guild_id){
@@ -298,7 +298,7 @@ function render(s){
   $('#courses').innerHTML = s.courses.map(co => {
     const rowsHtml = co.files.map(f => {
       const st = f.status || 'unknown';
-      const over = f.over_nitro ? ' <span class="chip c-manual">מעל 500MB</span>' : '';
+      const over = f.over_nitro ? ' <span class="chip c-manual">over 500 MB</span>' : '';
       return `<tr>
         <td style="width:26px"><input type="checkbox" class="pick"
              data-key="${esc(f.key)}" ${f.selected!==false?'checked':''}
@@ -315,8 +315,8 @@ function render(s){
                ${on===co.files.length?'checked':''}
                style="width:auto;margin:0 0 0 8px">${co.name}</span>
         <span class="muted" style="font-weight:400">
-          ${co.files.length} קבצים · ${fmt(co.bytes)} · ${pend} ממתינים${
-            on < co.files.length ? ' · נבחרו ' + on : ''}</span>
+          ${co.files.length} files &middot; ${fmt(co.bytes)} &middot; ${pend} pending${
+            on < co.files.length ? ' &middot; ' + on + ' selected' : ''}</span>
       </summary>
       <table>${rowsHtml}</table></details>`;
   }).join('');
@@ -352,8 +352,8 @@ function wirePicks(s){
   const on = s.selected === null || s.selected === undefined
       ? total : s.selected.length;
   $('#pickInfo').textContent = on === total
-      ? `כל ${total} הקבצים`
-      : `נבחרו ${on} מתוך ${total}`;
+      ? `all ${total} files`
+      : `${on} of ${total} selected`;
 
   document.querySelectorAll('.pick').forEach(cb => {
     cb.onchange = async () => {
@@ -392,7 +392,7 @@ async function poll(){
   if(on){
     $('#phase').textContent = p.phase;
     $('#counter').textContent = `${p.done} / ${p.total}` +
-      (p.errors ? `  ·  ${p.errors} שגיאות` : '');
+      (p.errors ? `  ·  ${p.errors} errors` : '');
     $('#current').textContent = (p.note ? '⏳ ' + p.note + '  —  ' : '') + (p.current || '');
     $('#barTotal').style.width = p.total ? (100*p.done/p.total)+'%' : '0%';
     $('#barItem').style.width  = (100*(p.item_pct||0))+'%';
@@ -411,9 +411,9 @@ $('#btnConnect').onclick = async () => {
                                        guild_id: $('#guild').value});
   if(r.error) return alert(r.error);
   if(r.guilds && r.guilds.length > 1 && !r.settings.guild_id){
-    $('#guild').innerHTML = '<option value="">— בחר שרת —</option>' +
+    $('#guild').innerHTML = '<option value="">- pick a server -</option>' +
       r.guilds.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
-    alert('הבוט נמצא בכמה שרתים — בחר אחד ולחץ "התחבר" שוב.');
+    alert('The bot is in more than one server - pick one and press "Connect" again.');
   }
   render(r);
 };
@@ -437,7 +437,7 @@ $('#btnAll').onclick       = run('all');
 $('#btnStop').onclick      = () => api('/api/stop', {});
 $('#btnReset').onclick = async () => {
   const alsoThreads = confirm(
-    'לאפס גם את רשימת הדיונים שנוצרו? אישור = לשכוח גם אילו דיונים נוצרו (אם מחקת אותם בדיסקורד). ביטול = לאפס רק את סימוני ההעלאה.');
+    'Also reset the list of created threads? OK = forget which threads exist (use this if you deleted them in Discord). Cancel = reset only the upload marks.');
   const r = await api('/api/reset', {threads: alsoThreads});
   if(r.error) return alert(r.error);
   qi = 0; render(r);
@@ -451,17 +451,17 @@ function renderMap(){
   card.style.display = '';
   const missing = m.filter(x => !x.forum_id).length;
   $('#mapWarn').innerHTML = missing
-    ? `<span style="color:var(--warn)">${missing} ללא פורום — ייווצרו בשלב 1</span>`
-    : `<span style="color:var(--ok)">כל ${m.length} הקורסים משויכים</span>`;
+    ? `<span style="color:var(--warn)">${missing} with no forum - they get created in step 1</span>`
+    : `<span style="color:var(--ok)">all ${m.length} courses mapped</span>`;
 
   $('#mapTable').innerHTML = m.map(x => {
-    const opts = ['<option value="">— אין / צור חדש —</option>']
+    const opts = ['<option value="">- none / create new -</option>']
       .concat(all.map(f => `<option value="${f.id}" ${f.id===x.forum_id?'selected':''}>`
         + `${f.name}${f.category?' · '+f.category:''} (${f.posts})</option>`)).join('');
-    const badge = !x.forum_id ? '<span class="chip c-needs_optimize">חסר</span>'
-      : x.pinned ? '<span class="chip c-bot_ready">ידני</span>'
-      : x.score >= 95 ? '<span class="chip c-done">מדויק</span>'
-      : `<span class="chip c-manual">דמיון ${x.score}%</span>`;
+    const badge = !x.forum_id ? '<span class="chip c-needs_optimize">missing</span>'
+      : x.pinned ? '<span class="chip c-bot_ready">manual</span>'
+      : x.score >= 95 ? '<span class="chip c-done">exact</span>'
+      : `<span class="chip c-manual">${x.score}% match</span>`;
     return `<tr>
       <td style="width:34%">${x.course}</td>
       <td style="width:12%">${badge}</td>
@@ -491,15 +491,15 @@ function renderQueue(){
   const it = q[qi];
   const totalDone = (S.counts.done||0) + (S.counts.already||0);
   const grand = S.total_files;
-  $('#qCount').textContent = `נותרו ${q.length} · הושלמו ${totalDone}/${grand}`;
+  $('#qCount').textContent = `${q.length} left &middot; ${totalDone}/${grand} done`;
   $('#qBar').style.width = grand ? (100*totalDone/grand)+'%' : '0%';
   $('#qNow').innerHTML =
     `<div style="font-size:16px;font-weight:700;margin-bottom:3px">${it.title}</div>
      <div class="muted" style="font-size:12px">#${it.course} · ${fmt(it.size)}
-       ${it.optimized?' · <span class="chip c-bot_ready">דחוס</span>':''}
-       ${it.url?'':' · <span class="chip c-needs_optimize">אין דיון — הרץ שלב 3</span>'}</div>`;
+       ${it.optimized?' · <span class="chip c-bot_ready">compressed</span>':''}
+       ${it.url?'':' · <span class="chip c-needs_optimize">no thread - run step 3</span>'}</div>`;
   const nxt = q.slice(qi+1, qi+4).map(x=>x.title).join('  •  ');
-  $('#qNext').textContent = nxt ? 'הבאים בתור:  ' + nxt : '';
+  $('#qNext').textContent = nxt ? 'Up next:  ' + nxt : '';
 }
 
 let watchTimer = null, lastFired = null, useEnter = true;
@@ -511,22 +511,22 @@ function stopWatch(){ if(watchTimer){ clearInterval(watchTimer); watchTimer = nu
 // only thing left to do is Ctrl+V then Enter.
 async function prepareCurrent(){
   const q = (S && S.queue) || [];
-  if(!q.length){ qsay('אין מה להעלות 🎉'); stopWatch(); return; }
+  if(!q.length){ qsay('Nothing to upload \ud83c\udf89'); stopWatch(); return; }
   if(qi >= q.length) qi = 0;
   const it = q[qi];
   if(!it.thread_id){
-    qsay('<span style="color:var(--warn)">אין דיון לקובץ הזה — הרץ שלב 3</span>');
+    qsay('<span style="color:var(--warn)">No thread for this file - run step 3</span>');
     return;
   }
   const r = await api('/api/manual/prepare', {key: it.key, open: true,
                                               watch_enter: true});
   if(r.error){ qsay('<span style="color:var(--bad)">'+r.error+'</span>'); return; }
   useEnter = !!r.watching_enter;
-  qsay('<b>' + r.title + '</b> · ' + Math.round(r.size/1048576) + ' MB — בדיסקורד: '
-     + '<b>Ctrl+V</b> ואז <b>Enter</b>'
+  qsay('<b>' + r.title + '</b> · ' + Math.round(r.size/1048576) + ' MB - in Discord: '
+     + '<b>Ctrl+V</b> then <b>Enter</b>'
      + ($('#hands').checked
-         ? (useEnter ? ' · עובר לבא ברגע שתלחץ Enter'
-                     : ' · ממתין לסיום ההעלאה')
+         ? (useEnter ? ' &middot; moves on the moment you press Enter'
+                     : ' &middot; waiting for the upload to finish')
          : ''));
   if($('#hands').checked) startWatch(it.key);
 }
@@ -547,7 +547,7 @@ function startWatch(key){
           stopWatch();
           S = await api('/api/state'); render(S);
           if((S.queue || []).length) await prepareCurrent();
-          else qsay('הכל הועלה 🎉');
+          else qsay('Everything uploaded \ud83c\udf89');
         }
       } else {
         const r = await api('/api/manual/check', {key});
@@ -555,7 +555,7 @@ function startWatch(key){
           stopWatch();
           S = await api('/api/state'); render(S);
           if((S.queue || []).length) await prepareCurrent();
-          else qsay('הכל הועלה 🎉');
+          else qsay('Everything uploaded \ud83c\udf89');
         }
       }
     } catch(e){ /* transient */ }
@@ -588,15 +588,15 @@ async function autoPoll(){
   let r;
   try { r = await api('/api/auto/status', {}); } catch(e){ return; }
   $('#autoStat').textContent = r.running
-      ? ('נשלחו ' + r.sent + '/' + r.target
-         + ' · אושרו ' + r.confirmed
-         + ' · באוויר ' + r.inflight)
+      ? ('sent ' + r.sent + '/' + r.target
+         + ' &middot; confirmed ' + r.confirmed
+         + ' &middot; in flight ' + r.inflight)
       : '';
   let line = '';
-  if(r.current) line += '<b>' + r.current + '</b> — שולח…';
+  if(r.current) line += '<b>' + r.current + '</b> - sending...';
   else if(r.note) line += r.note;
   if(r.failed) line += ' <span style="color:var(--warn)">· ' + r.failed
-                     + ' לא הגיעו — חזרו לתור</span>';
+                     + ' did not arrive - back in the queue</span>';
   if(r.error) line += ' <span style="color:var(--bad)">· ' + r.error + '</span>';
   asay(line);
   if(!r.running){
@@ -604,8 +604,8 @@ async function autoPoll(){
     $('#btnAuto').disabled = false;
     S = await api('/api/state'); render(S);
     asay((line ? line + '<br>' : '')
-         + 'סיום · נשלחו ' + r.sent
-         + ' · אושרו ' + r.confirmed);
+         + 'Done &middot; sent ' + r.sent
+         + ' &middot; confirmed ' + r.confirmed);
   }
 }
 
@@ -618,7 +618,7 @@ $('#btnAuto').onclick = async () => {
     paste_wait: +$('#aWait').value || 2.5});
   if(r.error){ asay('<span style="color:var(--bad)">' + r.error + '</span>'); return; }
   $('#btnAuto').disabled = true;
-  asay('רץ… אל תיגע במקלדת');
+  asay('Running... do not touch the keyboard');
   if(autoTimer) clearInterval(autoTimer);
   autoTimer = setInterval(autoPoll, 1500);
   autoPoll();

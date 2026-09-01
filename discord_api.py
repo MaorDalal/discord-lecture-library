@@ -16,7 +16,7 @@ UA = "DiscordBot (https://github.com/local/library-uploader, 1.0)"
 
 # Boost tier -> per-file cap in MB for a BOT (bots never get Nitro).
 TIER_LIMIT_MB = {0: 20, 1: 20, 2: 50, 3: 100}
-TIER_NAME = {0: "ללא בוסט", 1: "רמה 1", 2: "רמה 2", 3: "רמה 3"}
+TIER_NAME = {0: "no boost", 1: "level 1", 2: "level 2", 3: "level 3"}
 
 CHANNEL_FORUM = 15
 
