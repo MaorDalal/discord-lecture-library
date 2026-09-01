@@ -66,15 +66,14 @@ PORT = 7333
 
 # --------------------------------------------------------------- server text
 # Text this tool writes INTO Discord, as opposed to the text it shows in its
-# own panel. These follow the language of the server you publish to, so they
-# live here rather than being scattered through the code. Change the five
-# values below to match your server; nothing else needs to change.
+# own panel. These are defaults: category_name, forum_topic and post_body can
+# each be overridden per-install in state.json, which is gitignored, so the
+# repo can stay English while your server stays in its own language.
 # GUILD_NAME_HINT is a substring used to auto-pick the server; empty means
 # take the first one the bot is in.
 CATEGORY_NAME = "📚 The Library"
 GUILD_NAME_HINT = ""
 FORUM_TOPIC = "Course recordings"
-TAG_OTHER = "other"
 POST_BODY = "**%s**\n%s\n\n*The recording will be uploaded here.*"
 
 
@@ -84,6 +83,8 @@ DEFAULT_STATE = {
     "token": "",
     "guild_id": "",
     "category_name": CATEGORY_NAME,
+    "forum_topic": FORUM_TOPIC,
+    "post_body": POST_BODY,
     "done": {},        # key -> {thread_id, forum_id, when}
     "optimized": {},   # key -> {path, size}
     "manual_done": {},
@@ -473,12 +474,12 @@ def do_structure():
         if find_forum(course):
             log("forum for %s already exists" % course)
             continue
-        tags = sorted({library.TYPE_LABEL.get(r["type"], TAG_OTHER)
+        tags = sorted({library.TYPE_LABEL.get(r["type"], library.TYPE_LABEL["other"])
                        for r in rows if r["course"] == course})
         log("creating forum #%s (tags: %s)" % (course, ", ".join(tags)))
         try:
             d.create_forum(gid, course[:100], parent_id=cat_id,
-                           topic=FORUM_TOPIC, tags=tags)
+                           topic=state.get("forum_topic") or FORUM_TOPIC, tags=tags)
         except DiscordError as e:
             log("  ✖ %s" % e)
             job["errors"] += 1
@@ -610,7 +611,7 @@ def do_threads():
             continue
         tag_ids = [t["id"] for t in f["tags"]
                    if t["name"] == library.TYPE_LABEL.get(p["type"])]
-        body = POST_BODY % (p["title"], p["course"])
+        body = (state.get("post_body") or POST_BODY) % (p["title"], p["course"])
         try:
             th = d.create_post_textonly(f["id"], p["title"], body, tag_ids)
             state["threads"][p["key"]] = th.get("id")
